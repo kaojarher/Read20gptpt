@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20個閱讀隱藏指令 Prompt 工具</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#FDFBF7',
+                        cardBg: '#FFFDF9',
+                        warmBorder: '#E6DFD5',
+                        brandPrimary: '#8C6D53',
+                        brandAccent: '#E07A5F',
+                        brandDark: '#3D405B',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F7F5F0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+        }
+        .card-shadow:hover {
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 pb-12">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-warmBorder sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-amber-100 text-amber-800 rounded-xl">
+                        <i class="fa-solid fa-book-bookmark text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">20個閱讀隱藏指令 Prompt 工具</h1>
+                        <p class="text-xs sm:text-sm text-slate-500">把一本書的知識，變成不同風格的視覺筆記</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200/60 font-medium">
+                        <i class="fa-solid fa-bolt text-amber-500 mr-1"></i>支援一鍵傳送至 ChatGPT
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+        <!-- Global Input Panel -->
+        <section class="bg-white rounded-2xl p-5 border border-warmBorder card-shadow mb-8">
+            <h2 class="text-base font-bold text-slate-700 mb-3 flex items-center">
+                <i class="fa-solid fa-pen-to-square text-brandAccent mr-2"></i> 設定全域目標 (可選)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">書名 / 領域主題</label>
+                    <input type="text" id="globalBookTitle" placeholder="例如：《原子習慣》或「時間管理」" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:bg-white transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">補充內容 / 個人筆記 / 摘要文字 (可留空)</label>
+                    <input type="text" id="globalContent" placeholder="例如：針對第三章提到的「身份認同」部分..." class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:bg-white transition">
+                </div>
+            </div>
+            <p class="text-xs text-slate-400 mt-2 font-light">* 設定後，下方所有指令卡片將會自動帶入此資訊點擊送出。</p>
+        </section>
+
+        <!-- Search & Filter -->
+        <div class="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="relative w-full sm:w-80">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="searchInput" oninput="filterCards()" placeholder="搜尋指令或關鍵字..." class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50 shadow-sm">
+            </div>
+            <div class="text-xs text-slate-500 w-full sm:w-auto text-right">
+                共 <span id="cardCount" class="font-bold text-slate-800">20</span> 個隱藏視覺指令
+            </div>
+        </div>
+
+        <!-- Prompt Cards Grid -->
+        <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <!-- Cards will be dynamically generated by JS -->
+        </div>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2 z-50 text-sm">
+        <i class="fa-solid fa-circle-check text-green-400"></i>
+        <span id="toastMsg">已成功複製提示詞！</span>
+    </div>
+
+    <script>
+        const promptsData = [
+            { id: 1, cmd: "/blackboard chalk concept flow", title: "黑板粉筆概念流程圖", desc: "以黑板與粉筆風格，釐清主要概念、範例與最終結果的演進。", tag: "流程解析" },
+            { id: 2, cmd: "/hand sketched action ladder", title: "手繪行動階梯圖", desc: "分解達成目標的步驟，從 Step 1 階梯式上升至 Step 4。", tag: "行動步驟" },
+            { id: 3, cmd: "/handwritten insight sketch board", title: "手寫洞察筆記板", desc: "梳理核心 Key Insight、問題 (Why)、探索 (How) 與精髓 (Takeaway)。", tag: "洞察總結" },
+            { id: 4, cmd: "/clackboard idea connection map", title: "黑板概念關聯圖", desc: "圍繞 Core Main Idea，將點子 (Idea 1-4) 建立心智網路連線。", tag: "關聯思考" },
+            { id: 5, cmd: "/mind map sketch", title: "手繪思維導圖", desc: "放射狀展開主題，包含 Idea、Example、Solution、Benefit 與 Note。", tag: "思維導圖" },
+            { id: 6, cmd: "/knowledge tree", title: "知識樹結構圖", desc: "像大樹一樣生長，以樹幹為 Main Concept，延伸出的樹枝包含應用與優勢。", tag: "結構化" },
+            { id: 7, cmd: "/concept pyramid", title: "概念金字塔圖", desc: "由上至下層級化：Vision (願景) → Strategy (策略) → Tactics (戰術) → Actions (行動)。", tag: "層級分析" },
+            { id: 8, cmd: "/3-layer insight", title: "三層洞察圖", desc: "拆解三層次：01 WHAT (表象現象) → 02 WHY (深層原因) → 03 HOW (行動方法)。", tag: "深度分析" },
+            { id: 9, cmd: "/action roadmap", title: "行動路線圖", desc: "以曲折有致的道路標註裡程碑 (Start -> 1 -> 2 -> 3 -> Goal)。", tag: "路線規劃" },
+            { id: 10, cmd: "/step by step blueprint", title: "分步執行藍圖", desc: "標準直立看板格式：Step 1 準備 → Step 2 執行 → Step 3 優化 → Step 4 成果。", tag: "執行藍圖" },
+            { id: 11, cmd: "/decision flowchart", title: "決策流程圖", desc: "清晰的條件分歧圖：Start → 問題？ → [YES/NO] → 方案 A 或 B。", tag: "決策邏輯" },
+            { id: 12, cmd: "/visual book notes", title: "視覺讀書筆記", desc: "左右開頁圖書風格，整理 Book Notes、Key Ideas、Examples 與 Takeaways。", tag: "讀書筆記" },
+            { id: 13, cmd: "/handwritten cheat sheet", title: "手寫重點速查表", desc: "黃色便籤加鋼筆風格，以 Checklist 清單方式列出可執行的條列重點。", tag: "速查清單" },
+            { id: 14, cmd: "/sketchbook summary", title: "手繪風總結筆記", desc: "筆記本手繪塗鴉風格，並搭配插圖輔助說明精華總結內容。", tag: "圖文總結" },
+            { id: 15, cmd: "/one page book summary", title: "一頁書本總結", desc: "極簡結構化網格：Key Idea、Main Points、Examples 及 Takeaways。", tag: "極簡一頁" },
+            { id: 16, cmd: "/visual hierarchy", title: "視覺層級筆記", desc: "清楚標明 Main Idea 下的 Sub Point 1, 2, 3 及其 Detail 詳細清單。", tag: "層級整理" },
+            { id: 17, cmd: "/key takeaway board", title: "關鍵重點整理圖", desc: "精美卡片式立體呈現 3 個最核心的 Key Takeaways 洞察。", tag: "重點摘要" },
+            { id: 18, cmd: "/principle cards", title: "核心原則卡片", desc: "將內容化為平行並排的核心原則卡片 (Principle 1, 2, 3) 與簡明解析。", tag: "原則梳理" },
+            { id: 19, cmd: "/mental model map", title: "心智模型圖", desc: "輸入 (Input) → 思考 (Thinking / Mental Model) → 輸出 (Output) 與反饋 (Feedback) 循環。", tag: "模型架構" },
+            { id: 20, cmd: "/visual framework", title: "視覺框架圖", desc: "將架構拆解為模組 A → B → C 以及下方細項說明的架構圖。", tag: "系統架構" }
+        ];
+
+        function buildPromptText(item) {
+            const bookTitle = document.getElementById('globalBookTitle').value.trim();
+            const content = document.getElementById('globalContent').value.trim();
+
+            let prompt = `請以「${item.title} (${item.cmd})」的視覺化筆記風格來呈現`;
+            if (bookTitle) {
+                prompt += `《${bookTitle}》這本書的內容`;
+            } else {
+                prompt += `以下內容`;
+            }
+            
+            prompt += `。\n\n【視覺風格指令】\n- 風格：${item.cmd}\n- 架構說明：${item.desc}\n- 輸出要求：請使用清晰的 Markdown 語法、條列式清單、圖表標籤或 Ascii / Emoji 視覺框架來整理內容，讓視覺效果極佳且易於閱讀理解。`;
+
+            if (content) {
+                prompt += `\n\n【具體內容/筆記】\n${content}`;
+            }
+
+            return prompt;
+        }
+
+        function copyPrompt(id) {
+            const item = promptsData.find(p => p.id === id);
+            const text = buildPromptText(item);
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(`已複製指令：「${item.title}」`);
+            }).catch(err => {
+                showToast(`複製失敗，請手動複製`);
+            });
+        }
+
+        function sendToChatGPT(id) {
+            const item = promptsData.find(p => p.id === id);
+            const text = buildPromptText(item);
+            
+            // Encode the full prompt into URL parameter for ChatGPT
+            const chatGptUrl = `https://chatgpt.com/?q=${encodeURIComponent(text)}`;
+            window.open(chatGptUrl, '_blank');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        function renderCards(items) {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-cardBg border border-warmBorder rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 card-shadow hover:-translate-y-1 relative group";
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-100 text-amber-800 text-xs font-bold">
+                                ${item.id}
+                            </span>
+                            <span class="text-[11px] font-medium bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full">
+                                ${item.tag}
+                            </span>
+                        </div>
+                        <div class="text-xs font-mono font-semibold text-brandAccent mb-1 break-all">
+                            ${item.cmd}
+                        </div>
+                        <h3 class="text-base font-bold text-slate-800 mb-2">
+                            ${item.title}
+                        </h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">
+                            ${item.desc}
+                        </p>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex items-center gap-2">
+                        <button onclick="sendToChatGPT(${item.id})" title="直接在 ChatGPT 中開啟此指令" class="flex-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium py-2 px-3 rounded-xl transition shadow-sm hover:shadow">
+                            <i class="fa-solid fa-paper-plane text-[11px]"></i>
+                            <span>送至 ChatGPT</span>
+                        </button>
+                        <button onclick="copyPrompt(${item.id})" title="複製完整的 Prompt 文字" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-xl transition">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('cardCount').innerText = items.length;
+        }
+
+        function filterCards() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = promptsData.filter(item => 
+                item.title.toLowerCase().includes(query) || 
+                item.cmd.toLowerCase().includes(query) || 
+                item.desc.toLowerCase().includes(query) ||
+                item.tag.toLowerCase().includes(query)
+            );
+            renderCards(filtered);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCards(promptsData);
+        });
+    </script>
+</body>
+</html>
